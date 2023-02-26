@@ -1,16 +1,39 @@
 package com.codestates.order.entity;
 
+import com.codestates.member.entity.Member;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
 
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
+@NoArgsConstructor
 @Getter
 @Setter
+@Entity(name = "ORDERS")
 public class Order {
     @Id
-    @Setter(AccessLevel.NONE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long orderId;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus orderStatus = OrderStatus.ORDER_REQUEST;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(nullable = false, name = "LAST_MODIFIED_AT")
+    private LocalDateTime modifiedAt = LocalDateTime.now();
+
+    @ManyToOne
+    @JoinColumn(name = "MEMBER_ID")
+    private Member member;
+
+    public void addMember(Member member) {
+        this.member = member;
+    }
 
     public enum OrderStatus {
         ORDER_REQUEST(1, "주문 요청"),
