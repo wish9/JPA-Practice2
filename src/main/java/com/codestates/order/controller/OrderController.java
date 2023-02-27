@@ -1,6 +1,7 @@
 package com.codestates.order.controller;
 
 import com.codestates.coffee.service.CoffeeService;
+import com.codestates.order.dto.OrderPatchDto;
 import com.codestates.response.MultiResponseDto;
 import com.codestates.response.SingleResponseDto;
 import com.codestates.order.dto.OrderPostDto;
@@ -44,15 +45,20 @@ public class OrderController {
         return ResponseEntity.created(location).build();
     }
 
+    @PatchMapping("/{order-id}")
+    public ResponseEntity patchOrder(@PathVariable("order-id") @Positive long orderId,
+                                     @Valid @RequestBody OrderPatchDto orderPatchDto) {
+        orderPatchDto.setOrderId(orderId);
+        Order order = orderService.updateOrder(mapper.orderPatchDtoToOrder(orderPatchDto));
+
+        return new ResponseEntity<>(new SingleResponseDto<>(mapper.orderToOrderResponseDto(order)), HttpStatus.OK);
+    }
+
     @GetMapping("/{order-id}")
     public ResponseEntity getOrder(@PathVariable("order-id") @Positive long orderId) {
         Order order = orderService.findOrder(orderId);
 
-        // TODO JPA에 맞춰서 변경 필요
-        // List<Coffee> coffees = coffeeService.findOrderedCoffees(order);
-        return new ResponseEntity<>(
-                new SingleResponseDto<>(mapper.orderToOrderResponseDto(order, null)),
-                HttpStatus.OK);
+        return new ResponseEntity<>(new SingleResponseDto<>(mapper.orderToOrderResponseDto(order)), HttpStatus.OK);
     }
 
     @GetMapping
@@ -61,7 +67,6 @@ public class OrderController {
         Page<Order> pageOrders = orderService.findOrders(page - 1, size);
         List<Order> orders = pageOrders.getContent();
 
-        // TODO JPA에 맞춰서 주문 커피 정보 추가 필요
         return new ResponseEntity<>(
                 new MultiResponseDto<>(mapper.ordersToOrderResponseDtos(orders), pageOrders),
                 HttpStatus.OK);
